@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRISM - Settings</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+
+<body>
+    <div class="options-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <img src="../../icons/prism-header.png" alt="PRISM Logo" class="logo-icon">
+                    <h1>PRISM</h1>
+                </div>
+                <p class="subtitle">Configure scanning options and manage detection rules</p>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Settings Section -->
+            <section class="settings-section card">
+                <div class="card-header">
+                    <h2>Scanning Options</h2>
+                </div>
+                <div class="card-body">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <label for="scanCurrentDomainOnly">Scan Current Domain Only</label>
+                            <p class="setting-description">Only scan resources from the same domain as the current page
+                            </p>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="scanCurrentDomainOnly">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <label for="scanThirdPartyResources">Scan Third-Party Resources</label>
+                            <p class="setting-description">Include external CDN scripts and stylesheets in scans</p>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="scanThirdPartyResources" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <label for="excludedDomains">Excluded Domains</label>
+                            <p class="setting-description">One per line. Examples: google.com, *.google.com, ^internal-,
+                                *test*. Supports simple domains, wildcards (*), and regex patterns.</p>
+                            <textarea id="excludedDomains" rows="3"
+                                placeholder="google.com&#10;*.example.com&#10;^internal-" class="form-input"
+                                style="margin-top: 8px; font-family: monospace;"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <label for="autoScanOnLoad">Auto-Scan on Page Load</label>
+                            <p class="setting-description">Automatically scan every page when it finishes loading</p>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoScanOnLoad">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <label for="showNotifications">Show Notifications</label>
+                            <p class="setting-description">Show browser notification when secrets are found</p>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="showNotifications" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <label for="historyExpirationDays">History Expiration (Days)</label>
+                            <p class="setting-description">Scan history will be automatically deleted after this many
+                                days</p>
+                        </div>
+                        <input type="number" id="historyExpirationDays" min="1" max="365" value="7"
+                            class="number-input">
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <label>View Scan Logs</label>
+                            <p class="setting-description">View all detected secrets from scan history</p>
+                        </div>
+                        <button id="view-logs-btn" class="btn btn-primary">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            Show Logs
+                        </button>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <label>Clear Scan History</label>
+                            <p class="setting-description">Delete all saved scan history</p>
+                        </div>
+                        <button id="clear-history-btn" class="btn btn-danger">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                            Clear History
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Rules Section -->
+            <section class="rules-section card">
+                <div class="card-header">
+                    <h2>Detection Rules</h2>
+                    <div class="card-actions">
+                        <button id="add-rule-btn" class="btn btn-primary">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" />
+                            </svg>
+                            Add Rule
+                        </button>
+                        <button id="reset-rules-btn" class="btn btn-secondary">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M3 3v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                            Reset to Defaults
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="rules-filter">
+                        <input type="text" id="rules-search" placeholder="Search rules..." class="search-input">
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" data-filter="all">All</button>
+                            <button class="filter-btn" data-filter="enabled">Enabled</button>
+                            <button class="filter-btn" data-filter="disabled">Disabled</button>
+                        </div>
+                    </div>
+                    <div class="rules-list" id="rules-list">
+                        <!-- Rules will be populated here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Rule Modal -->
+        <div class="modal-overlay" id="rule-modal" style="display: none;">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 id="modal-title">Add New Rule</h3>
+                    <button class="modal-close" id="modal-close">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="rule-id">
+                    <div class="form-group">
+                        <label for="rule-name">Rule Name</label>
+                        <input type="text" id="rule-name" placeholder="e.g., AWS_API_Key" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="rule-patterns">Regex Patterns <span class="hint">(one per line)</span></label>
+                        <textarea id="rule-patterns" rows="5" placeholder="Enter regex patterns, one per line..."
+                            class="form-input"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="rule-enabled" checked>
+                            <span>Enable this rule</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="modal-cancel" class="btn btn-secondary">Cancel</button>
+                    <button id="modal-save" class="btn btn-primary">Save Rule</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs Modal -->
+        <div class="modal-overlay" id="logs-modal" style="display: none;">
+            <div class="modal modal-large">
+                <div class="modal-header">
+                    <h3>Scan Logs</h3>
+                    <div class="header-actions">
+                        <button id="refresh-logs-btn" class="icon-btn" title="Refresh">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M23 4v6h-6M1 20v-6h6" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </button>
+                        <button class="modal-close" id="logs-modal-close">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="logs-container" id="logs-container">
+                        <!-- Logs will be populated here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="logs-modal-close-btn" class="btn btn-secondary">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div class="toast" id="toast" style="display: none;">
+            <span class="toast-message" id="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="options.js"></script>
+</body>
+
+</html>

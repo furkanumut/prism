@@ -1,0 +1,523 @@
+{
+    "rules": [
+        {
+            "id": "sift-key",
+            "name": "Sift_Key",
+            "patterns": [
+                "\\.with(?:AccountId|BeaconKey)\\([\"'].*[\"']\\)"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "sentry-dsn",
+            "name": "Sentry_DSN",
+            "patterns": [
+                "https?://(\\w+)(:\\w+)?@sentry\\.io/[0-9]+"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "intercom-api-key",
+            "name": "Intercom_API_Key",
+            "patterns": [
+                "Intercom\\.initialize\\([\"']?\\w+[\"']?,\\s?[\"']?\\w+[\"']?,\\s?[\"']?\\w+[\"']?\\)"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "singular-config",
+            "name": "Singular_Config",
+            "patterns": [
+                "SingularConfig\\([\"']?[\\w._]+[\"']?,\\s?[\"']?[\\w._]+[\"']?\\)"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "adjust-config",
+            "name": "Adjust_Config",
+            "patterns": [
+                "AdjustConfig\\([\"']?[\\w]+[\"']?,\\s?[\"']?[\\w]+[\"']?(,\\s?[\"']?[\\w]+[\"']?)?\\)",
+                "([aA]djust)?[Cc]onfig\\.setAppSecret\\(.*\\)"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "bitmovin-api-key",
+            "name": "Bitmovin_API_Key",
+            "patterns": [
+                "BITMOVIN_API_KEY\\s?=\\s?['\"]?.*['\"]?"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "salesforce-mc-token",
+            "name": "Salesforce_MarketingCloud_Token",
+            "patterns": [
+                "setAccessToken\\(\\w+\\.MC_ACCESS_TOKEN\\)"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "appdynamics-key",
+            "name": "AppDynamics_Key",
+            "patterns": [
+                "AgentConfiguration\\.builder\\(\\)(\\s*)?([.\\w()\\s]+)\\.withAppKey\\(.*?\\)"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "appcenter-secret",
+            "name": "AppCenter_Secret",
+            "patterns": [
+                "AppCenter\\.(configure|start)\\(.*\\)"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "aws-access-key-id",
+            "name": "Amazon_AWS_Access_Key_ID",
+            "patterns": [
+                "([^A-Z0-9]|^)(AKIA|A3T|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{12,}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "aws-s3-bucket",
+            "name": "Amazon_AWS_S3_Bucket",
+            "patterns": [
+                "//s3-[a-z0-9-]+\\.amazonaws\\.com/[a-z0-9._-]+",
+                "//s3\\.amazonaws\\.com/[a-z0-9._-]+",
+                "[a-z0-9.-]+\\.s3-[a-z0-9-]\\.amazonaws\\.com",
+                "[a-z0-9.-]+\\.s3-website[.-](eu|ap|us|ca|sa|cn)",
+                "[a-z0-9.-]+\\.s3\\.amazonaws\\.com",
+                "amzn\\.mws\\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "artifactory-api-token",
+            "name": "Artifactory_API_Token",
+            "patterns": [
+                "(?:\\s|=|:|\"|^)AKC[a-zA-Z0-9]{10,}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "artifactory-password",
+            "name": "Artifactory_Password",
+            "patterns": [
+                "(?:\\s|=|:|\"|^)AP[\\dABCDEF][a-zA-Z0-9]{8,}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "auth-basic",
+            "name": "Authorization_Basic",
+            "patterns": [
+                "basic\\s[a-zA-Z0-9_\\-:.=]+"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "auth-bearer",
+            "name": "Authorization_Bearer",
+            "patterns": [
+                "bearer\\s[a-zA-Z0-9_\\-:.=]+"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "aws-api-key",
+            "name": "AWS_API_Key",
+            "patterns": [
+                "AKIA[0-9A-Z]{16}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "basic-auth-creds",
+            "name": "Basic_Auth_Credentials",
+            "patterns": [
+                "://[a-zA-Z0-9]+:[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-zA-Z]+"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "cloudinary-basic-auth",
+            "name": "Cloudinary_Basic_Auth",
+            "patterns": [
+                "cloudinary://[0-9]{15}:[0-9A-Za-z]+@[a-z]+"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "dynatrace-token",
+            "name": "Dynatrace_Token",
+            "patterns": [
+                "dt0[a-zA-Z]{1}[0-9]{2}\\.[A-Z0-9]{24}\\.[A-Z0-9]{64}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "discord-bot-token",
+            "name": "Discord_BOT_Token",
+            "patterns": [
+                "((?:N|M|O)[a-zA-Z0-9]{23}\\.[a-zA-Z0-9-_]{6}\\.[a-zA-Z0-9-_]{27})"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "facebook-access-token",
+            "name": "Facebook_Access_Token",
+            "patterns": [
+                "EAACEdEose0cBA[0-9A-Za-z]+"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "facebook-client-id",
+            "name": "Facebook_ClientID",
+            "patterns": [
+                "[fF][aA][cC][eE][bB][oO][oO][kK](.{0,20})?['\"][0-9]{13,17}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "facebook-oauth",
+            "name": "Facebook_OAuth",
+            "patterns": [
+                "[fF][aA][cC][eE][bB][oO][oO][kK].*['\"][0-9a-f]{32}['\"]"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "facebook-secret-key",
+            "name": "Facebook_Secret_Key",
+            "patterns": [
+                "([fF][aA][cC][eE][bB][oO][oO][kK]|[fF][bB])(.{0,20})?['\"][0-9a-f]{32}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "firebase",
+            "name": "Firebase",
+            "patterns": [
+                "[a-z0-9.-]+\\.firebaseio\\.com",
+                "[a-z0-9.-]+\\.firebaseapp\\.com"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "generic-api-key",
+            "name": "Generic_API_Key",
+            "patterns": [
+                "[aA][pP][iI][_]?[kK][eE][yY].*['\"][0-9a-zA-Z]{32,45}['\"]"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "generic-secret",
+            "name": "Generic_Secret",
+            "patterns": [
+                "[sS][eE][cC][rR][eE][tT].*['\"][0-9a-zA-Z]{32,45}['\"]"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "github",
+            "name": "GitHub",
+            "patterns": [
+                "[gG][iI][tT][hH][uU][bB].*['\"][0-9a-zA-Z]{35,40}['\"]"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "github-access-token",
+            "name": "GitHub_Access_Token",
+            "patterns": [
+                "[a-zA-Z0-9_-]*:[a-zA-Z0-9_-]+@github\\.com"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "google-api-key",
+            "name": "Google_API_Key",
+            "patterns": [
+                "AIza[0-9A-Za-z\\-_]{35}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "google-cloud-oauth",
+            "name": "Google_Cloud_Platform_OAuth",
+            "patterns": [
+                "[0-9]+-[0-9A-Za-z_]{32}\\.apps\\.googleusercontent\\.com"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "google-cloud-service-account",
+            "name": "Google_Cloud_Platform_Service_Account",
+            "patterns": [
+                "\"type\":\\s*\"service_account\""
+            ],
+            "enabled": true
+        },
+        {
+            "id": "google-oauth-access-token",
+            "name": "Google_OAuth_Access_Token",
+            "patterns": [
+                "ya29\\.[0-9A-Za-z\\-_]+"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "heroku-api-key",
+            "name": "Heroku_API_Key",
+            "patterns": [
+                "[hH][eE][rR][oO][kK][uU].*[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "mailchimp-api-key",
+            "name": "MailChimp_API_Key",
+            "patterns": [
+                "[0-9a-f]{32}-us[0-9]{1,2}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "mailgun-api-key",
+            "name": "Mailgun_API_Key",
+            "patterns": [
+                "key-[0-9a-zA-Z]{32}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "password-in-url",
+            "name": "Password_in_URL",
+            "patterns": [
+                "[a-zA-Z]{3,10}://[^/\\s:@]{3,20}:[^/\\s:@]{3,20}@.{1,100}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "paypal-braintree-token",
+            "name": "PayPal_Braintree_Access_Token",
+            "patterns": [
+                "access_token\\$production\\$[0-9a-z]{16}\\$[0-9a-f]{32}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "pgp-private-key",
+            "name": "PGP_Private_Key_Block",
+            "patterns": [
+                "-----BEGIN PGP PRIVATE KEY BLOCK-----"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "picatic-api-key",
+            "name": "Picatic_API_Key",
+            "patterns": [
+                "sk_live_[0-9a-z]{32}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "rsa-private-key",
+            "name": "RSA_Private_Key",
+            "patterns": [
+                "-----BEGIN RSA PRIVATE KEY-----"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "slack-token",
+            "name": "Slack_Token",
+            "patterns": [
+                "xox[pboa]-[0-9]{12}-[0-9]{12}-[0-9]{12}-[a-z0-9]{32}",
+                "xox[baprs]-([0-9a-zA-Z]{10,48})?"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "slack-webhook",
+            "name": "Slack_Webhook",
+            "patterns": [
+                "https://hooks\\.slack\\.com/services/T[a-zA-Z0-9_]{8}/B[a-zA-Z0-9_]{8}/[a-zA-Z0-9_]{24}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "square-access-token",
+            "name": "Square_Access_Token",
+            "patterns": [
+                "sq0atp-[0-9A-Za-z\\-_]{22}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "square-oauth-secret",
+            "name": "Square_OAuth_Secret",
+            "patterns": [
+                "sq0csp-[0-9A-Za-z\\-_]{43}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "ssh-dsa-private-key",
+            "name": "SSH_DSA_Private_Key",
+            "patterns": [
+                "-----BEGIN DSA PRIVATE KEY-----"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "ssh-ec-private-key",
+            "name": "SSH_EC_Private_Key",
+            "patterns": [
+                "-----BEGIN EC PRIVATE KEY-----"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "stripe-api-key",
+            "name": "Stripe_API_Key",
+            "patterns": [
+                "sk_live_[0-9a-zA-Z]{24}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "stripe-restricted-api-key",
+            "name": "Stripe_Restricted_API_Key",
+            "patterns": [
+                "rk_live_[0-9a-zA-Z]{24}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "twilio-api-key",
+            "name": "Twilio_API_Key",
+            "patterns": [
+                "SK[0-9a-fA-F]{32}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "twitter-access-token",
+            "name": "Twitter_Access_Token",
+            "patterns": [
+                "[tT][wW][iI][tT][tT][eE][rR].*[1-9][0-9]+-[0-9a-zA-Z]{40}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "twitter-client-id",
+            "name": "Twitter_ClientID",
+            "patterns": [
+                "[tT][wW][iI][tT][tT][eE][rR](.{0,20})?['\"][0-9a-z]{18,25}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "twitter-oauth",
+            "name": "Twitter_OAuth",
+            "patterns": [
+                "[tT][wW][iI][tT][tT][eE][rR].*['\"][0-9a-zA-Z]{35,44}['\"]"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "twitter-secret-key",
+            "name": "Twitter_Secret_Key",
+            "patterns": [
+                "[tT][wW][iI][tT][tT][eE][rR](.{0,20})?['\"][0-9a-z]{35,44}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "private-key",
+            "name": "Private_Key",
+            "patterns": [
+                "BEGIN OPENSSH PRIVATE KEY",
+                "BEGIN PRIVATE KEY",
+                "BEGIN RSA PRIVATE KEY",
+                "BEGIN DSA PRIVATE KEY",
+                "BEGIN EC PRIVATE KEY",
+                "BEGIN PGP PRIVATE KEY BLOCK",
+                "ssh-rsa AAAA"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "sendgrid-api-key",
+            "name": "Sendgrid_API_Key",
+            "patterns": [
+                "SG\\.[a-zA-Z0-9_]{22}\\.[a-zA-Z0-9_\\-]{43}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "shopify-access-token",
+            "name": "Shopify_Access_Token",
+            "patterns": [
+                "shp[a-zA-Z0-9_]{32}",
+                "shpat_[a-fA-F0-9]{32}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "shopify-api-key",
+            "name": "Shopify_API_Key",
+            "patterns": [
+                "shpca_[a-zA-Z0-9_]{32}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "shopify-password",
+            "name": "Shopify_Password",
+            "patterns": [
+                "shppa_[a-zA-Z0-9_]{32}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "shopify-secret-key",
+            "name": "Shopify_Secret_Key",
+            "patterns": [
+                "shpss_[a-zA-Z0-9_]{32}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "fcm-server-key",
+            "name": "FCM_Server_Key",
+            "patterns": [
+                "AAAA[a-zA-Z0-9_-]{7}:[a-zA-Z0-9_-]{140}"
+            ],
+            "enabled": true
+        },
+        {
+            "id": "ip-address",
+            "name": "IP_Address",
+            "patterns": [
+                "\\b(?:[0-9]{1,3}\\.){3}[0-9]{1,3}\\b"
+            ],
+            "enabled": false
+        },
+        {
+            "id": "url-pattern",
+            "name": "URL",
+            "patterns": [
+                "https?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+            ],
+            "enabled": false
+        }
+    ]
+}

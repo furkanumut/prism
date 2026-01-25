@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PRISM</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <img src="/icons/prism-header.png" alt="PRISM Logo" class="logo-icon">
+        <span class="logo-text">PRISM</span>
+      </div>
+      <div class="header-actions">
+        <button id="settings-btn" class="icon-btn" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+              stroke="currentColor" stroke-width="2" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Status Section -->
+    <section class="status-section" id="status-section">
+      <div class="status-card" id="status-card">
+        <div class="status-icon" id="status-icon">
+          <svg class="icon-ready" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+            <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+        </div>
+        <div class="status-info">
+          <span class="status-label" id="status-label">Ready to Scan</span>
+          <span class="status-detail" id="status-detail">Click the button below to start</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scan Button -->
+    <section class="action-section">
+      <button id="scan-btn" class="scan-btn">
+        <svg class="scan-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
+          <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        <span>Scan Page</span>
+      </button>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results-section" id="results-section" style="display: none;">
+      <div class="results-header">
+        <h3>Findings</h3>
+        <span class="findings-count" id="findings-count">0</span>
+      </div>
+      <div class="results-list" id="results-list">
+        <!-- Findings will be populated here -->
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section" id="stats-section" style="display: none;">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-value" id="stat-scripts">0</span>
+          <span class="stat-label">Scripts</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="stat-styles">0</span>
+          <span class="stat-label">Styles</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="stat-inline">0</span>
+          <span class="stat-label">Inline</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay" style="display: none;">
+      <div class="spinner"></div>
+      <span>Scanning...</span>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+
+</html>
