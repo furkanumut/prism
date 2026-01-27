@@ -166,8 +166,31 @@ export async function saveScanResults(results, tabId) {
     return new Promise((resolve) => {
         chrome.storage.local.get([STORAGE_KEYS.SCAN_RESULTS], (result) => {
             const allResults = result[STORAGE_KEYS.SCAN_RESULTS] || {};
+
+            // Limit stored results to last 20 tabs to prevent quota issues
+            const tabIds = Object.keys(allResults);
+            if (tabIds.length > 20) {
+                // Remove oldest entries (first ones in the object)
+                const toRemove = tabIds.slice(0, tabIds.length - 20);
+                toRemove.forEach(id => delete allResults[id]);
+                console.log('[PRISM] Cleaned up', toRemove.length, 'old tab results');
+            }
+
             allResults[tabId] = results;
-            chrome.storage.local.set({ [STORAGE_KEYS.SCAN_RESULTS]: allResults }, resolve);
+            chrome.storage.local.set({ [STORAGE_KEYS.SCAN_RESULTS]: allResults }, () => {
+                if (chrome.runtime.lastError) {
+                    console.error('[PRISM] Failed to save results:', chrome.runtime.lastError.message);
+                    // Try to clear all results and save just this one
+                    chrome.storage.local.set({ [STORAGE_KEYS.SCAN_RESULTS]: { [tabId]: results } }, () => {
+                        if (chrome.runtime.lastError) {
+                            console.error('[PRISM] Still failed after cleanup:', chrome.runtime.lastError.message);
+                        }
+                        resolve();
+                    });
+                } else {
+                    resolve();
+                }
+            });
         });
     });
 }
@@ -265,6 +288,132 @@ export async function cleanupExpiredHistory() {
     if (filteredHistory.length !== history.length) {
         await saveHistory(filteredHistory);
     }
+}
+
+/**
+ * Get false positives from storage
+ * @returns {Promise<Array>} Array of false positive objects
+ */
+export async function getFalsePositives() {
+    return new Promise((resolve) => {
+        chrome.storage.local.get([STORAGE_KEYS.FALSE_POSITIVES], (result) => {
+            resolve(result[STORAGE_KEYS.FALSE_POSITIVES] || []);
+        });
+    });
+}
+
+/**
+ * Save false positives to storage
+ * @param {Array} falsePositives - Array of false positive objects
+ * @returns {Promise<void>}
+ */
+export async function saveFalsePositives(falsePositives) {
+    return new Promise((resolve) => {
+        chrome.storage.local.set({ [STORAGE_KEYS.FALSE_POSITIVES]: falsePositives }, resolve);
+    });
+}
+
+/**
+ * Generate hash for a finding (ruleName + value)
+ * Uses a simple string hash instead of crypto.subtle for Service Worker compatibility
+ * @param {string} ruleName - Rule name
+ * @param {string} value - Detected value
+ * @returns {string} Hash string
+ */
+function generateFindingHash(ruleName, value) {
+    const text = `${ruleName}:${value}`;
+    // Simple djb2 hash algorithm
+    let hash = 5381;
+    for (let i = 0; i < text.length; i++) {
+        hash = ((hash << 5) + hash) + text.charCodeAt(i);
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return 'fp_' + Math.abs(hash).toString(16);
+}
+
+/**
+ * Add a finding to false positives
+ * @param {Object} finding - Finding object with ruleName, value, source, sourceType, context
+ * @returns {Promise<Object>} The created false positive entry
+ */
+export async function addFalsePositive(finding) {
+    const falsePositives = await getFalsePositives();
+    const hash = generateFindingHash(finding.ruleName, finding.value || finding.context?.match);
+
+    // Check if already exists
+    const existing = falsePositives.find(fp => fp.hash === hash);
+    if (existing) {
+        return existing;
+    }
+
+    const newFP = {
+        id: generateId(),
+        ruleName: finding.ruleName,
+        value: finding.value || finding.context?.match,
+        hash: hash,
+        markedAt: Date.now(),
+        source: finding.source,
+        sourceType: finding.sourceType
+    };
+
+    falsePositives.push(newFP);
+    await saveFalsePositives(falsePositives);
+    return newFP;
+}
+
+/**
+ * Remove a false positive by ID
+ * @param {string} fpId - False positive ID
+ * @returns {Promise<boolean>} True if removed, false if not found
+ */
+export async function removeFalsePositive(fpId) {
+    const falsePositives = await getFalsePositives();
+    const index = falsePositives.findIndex(fp => fp.id === fpId);
+    if (index === -1) return false;
+
+    falsePositives.splice(index, 1);
+    await saveFalsePositives(falsePositives);
+    return true;
+}
+
+/**
+ * Check if a finding is a false positive
+ * @param {Object} finding - Finding object with ruleName and value
+ * @returns {Promise<boolean>} True if it's a false positive
+ */
+export async function isFalsePositive(finding) {
+    const falsePositives = await getFalsePositives();
+    const hash = generateFindingHash(finding.ruleName, finding.value || finding.context?.match);
+    return falsePositives.some(fp => fp.hash === hash);
+}
+
+/**
+ * Filter out false positives from findings array
+ * @param {Array} findings - Array of finding objects
+ * @returns {Promise<Array>} Filtered findings array
+ */
+export async function filterFalsePositives(findings) {
+    if (!findings || findings.length === 0) return findings;
+
+    // Load false positives once
+    const falsePositives = await getFalsePositives();
+
+    // If no false positives, return all findings
+    if (!falsePositives || falsePositives.length === 0) {
+        console.log('[PRISM] No false positives in storage, returning all', findings.length, 'findings');
+        return findings;
+    }
+
+    // Create a set of hashes for faster lookup
+    const fpHashes = new Set(falsePositives.map(fp => fp.hash));
+
+    const filtered = findings.filter(finding => {
+        const hash = generateFindingHash(finding.ruleName, finding.value || finding.context?.match);
+        return !fpHashes.has(hash);
+    });
+
+    console.log('[PRISM] Filtered', findings.length - filtered.length, 'false positives, returning', filtered.length, 'findings');
+    return filtered;
 }
 
 /**

@@ -112,6 +112,20 @@
 
                     <div class="setting-item">
                         <div class="setting-info">
+                            <label>View False Positives</label>
+                            <p class="setting-description">View and manage findings marked as false positives</p>
+                        </div>
+                        <button id="view-fp-btn" class="btn btn-primary">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" />
+                            </svg>
+                            Show False Positives
+                        </button>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
                             <label>Clear Scan History</label>
                             <p class="setting-description">Delete all saved scan history</p>
                         </div>
@@ -234,6 +248,40 @@
                 </div>
                 <div class="modal-footer">
                     <button id="logs-modal-close-btn" class="btn btn-secondary">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- False Positives Modal -->
+        <div class="modal-overlay" id="fp-modal" style="display: none;">
+            <div class="modal modal-large">
+                <div class="modal-header">
+                    <h3>False Positives</h3>
+                    <div class="header-actions">
+                        <button id="refresh-fp-btn" class="icon-btn" title="Refresh">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M23 4v6h-6M1 20v-6h6" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </button>
+                        <button class="modal-close" id="fp-modal-close">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="fp-container" id="fp-container">
+                        <!-- False positives will be populated here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="fp-modal-close-btn" class="btn btn-secondary">Close</button>
                 </div>
             </div>
         </div>

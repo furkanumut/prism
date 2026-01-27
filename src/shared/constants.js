@@ -4,7 +4,8 @@ export const STORAGE_KEYS = {
   SETTINGS: 'prism_settings',
   RULES: 'prism_rules',
   SCAN_RESULTS: 'prism_results',
-  SCAN_HISTORY: 'prism_history'
+  SCAN_HISTORY: 'prism_history',
+  FALSE_POSITIVES: 'prism_false_positives'
 };
 
 export const MESSAGE_TYPES = {
