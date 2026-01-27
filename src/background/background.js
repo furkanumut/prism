@@ -10,7 +10,9 @@ import {
     getScanHistory,
     addToHistory,
     clearHistory,
-    cleanupExpiredHistory
+    cleanupExpiredHistory,
+    filterFalsePositives,
+    addFalsePositive
 } from '../shared/storage.js';
 
 // Initialize extension on install
@@ -21,7 +23,27 @@ chrome.runtime.onInstalled.addListener(async (details) => {
         await getRules();
         console.log('PRISM ready.');
     }
+
+    // Clean up old data on install/update to prevent quota issues
+    await forceCleanupStorage();
 });
+
+// Force cleanup on every service worker start to prevent quota issues
+forceCleanupStorage();
+
+/**
+ * Force cleanup storage to recover from quota exceeded
+ */
+async function forceCleanupStorage() {
+    // Clear scan results and history to free up space
+    chrome.storage.local.remove(['prism_results', 'prism_history'], () => {
+        if (chrome.runtime.lastError) {
+            console.error('[PRISM] Cleanup error:', chrome.runtime.lastError.message);
+        } else {
+            console.log('[PRISM] Cleaned up scan results and history');
+        }
+    });
+}
 
 // Cleanup expired history on startup
 cleanupExpiredHistory();
@@ -50,7 +72,9 @@ async function handleMessage(message, sender) {
             // If requested from popup, message.tabId should be provided
             // If checking from content script, use senderTabId
             const targetTabId = message.tabId || senderTabId;
-            return await getScanResults(targetTabId);
+            const scanResults = await getScanResults(targetTabId);
+            console.log('[PRISM] GET_RESULTS for tab', targetTabId, 'returned:', scanResults ? scanResults.findings?.length + ' findings' : 'null');
+            return scanResults;
 
         case MESSAGE_TYPES.CLEAR_RESULTS:
             await clearScanResults(message.tabId);
@@ -64,6 +88,14 @@ async function handleMessage(message, sender) {
             await clearHistory();
             return { success: true };
 
+        case 'ADD_FALSE_POSITIVE':
+            // Add finding to false positives
+            if (!message.finding) {
+                return { error: 'No finding provided' };
+            }
+            await addFalsePositive(message.finding);
+            return { success: true };
+
         case MESSAGE_TYPES.SCAN_COMPLETE:
             // Content script finished scanning
             // Use the sender tab ID for saving results
@@ -72,15 +104,36 @@ async function handleMessage(message, sender) {
                 return { error: 'Unknown source' };
             }
 
+            console.log('[PRISM] SCAN_COMPLETE received for tab', senderTabId, 'with', message.findings?.length, 'findings');
+
+            // Filter out false positives from findings
+            const filteredFindings = await filterFalsePositives(message.findings || []);
+
+            console.log('[PRISM] After filtering:', filteredFindings.length, 'findings remain');
+
+            // Truncate findings to reduce storage size
+            const truncatedFindings = filteredFindings.map(f => ({
+                ruleName: f.ruleName,
+                sourceType: f.sourceType,
+                source: f.source?.substring(0, 200) || '',
+                value: (f.value || f.context?.match || '').substring(0, 300),
+                context: f.context ? {
+                    before: (f.context.before || '').substring(0, 50),
+                    match: (f.context.match || '').substring(0, 300),
+                    after: (f.context.after || '').substring(0, 50)
+                } : null
+            }));
+
             const results = {
                 url: message.url,
                 timestamp: Date.now(),
-                findings: message.findings,
+                findings: truncatedFindings,
                 stats: message.stats
             };
 
             // Save results specifically for this tab
             await saveScanResults(results, senderTabId);
+            console.log('[PRISM] Results saved for tab', senderTabId);
 
             // Broadcast SCAN_COMPLETE to all extension contexts (popup, options, etc.)
             chrome.runtime.sendMessage({
@@ -91,14 +144,14 @@ async function handleMessage(message, sender) {
                 // Popup might be closed, ignore
             });
 
-            // Add to history if there are findings
-            if (message.findings && message.findings.length > 0) {
+            // Add to history if there are findings (after filtering)
+            if (filteredFindings && filteredFindings.length > 0) {
                 await addToHistory(results);
 
                 // Show notification (browser + in-page) if enabled
                 const settings = await getSettings();
                 if (settings.showNotifications) {
-                    await showNotification(message.findings.length, message.url);
+                    await showNotification(filteredFindings.length, message.url);
 
                     // Show in-page notification
                     try {
@@ -115,7 +168,7 @@ async function handleMessage(message, sender) {
                             // Send message to show notification
                             await chrome.tabs.sendMessage(tab.id, {
                                 type: MESSAGE_TYPES.SHOW_IN_PAGE_NOTIFICATION,
-                                findingsCount: message.findings.length
+                                findingsCount: filteredFindings.length
                             }).catch(() => {
                                 // Tab might be closed or restricted, ignore
                             });

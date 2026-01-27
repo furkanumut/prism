@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Show findings with context
-    resultsList.innerHTML = findings.map((finding) => {
+    resultsList.innerHTML = findings.map((finding, index) => {
       // Build context display
       let contextHtml = '';
       if (finding.context) {
@@ -225,16 +225,27 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       return `
-        <div class="finding-item">
+        <div class="finding-item" data-finding-index="${index}">
           <div class="finding-header">
             <span class="finding-rule">${escapeHtml(finding.ruleName)}</span>
             <span class="finding-type">${escapeHtml(finding.sourceType)}</span>
           </div>
           ${contextHtml}
           <div class="finding-source" title="${escapeHtml(finding.source)}">${escapeHtml(truncateUrl(finding.source))}</div>
+          <div class="finding-actions">
+            <button class="fp-btn" data-mark-fp="${index}">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              False Positive
+            </button>
+          </div>
         </div>
       `;
     }).join('');
+
+    // Store findings data for later retrieval
+    resultsList.dataset.findings = JSON.stringify(findings);
   }
 
   /**
@@ -281,12 +292,50 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Event delegation for ellipsis expansion
-  resultsList.addEventListener('click', (e) => {
+  // Event delegation for ellipsis expansion and false positive marking
+  resultsList.addEventListener('click', async (e) => {
+    // Handle ellipsis expansion
     if (e.target.classList.contains('expand-ellipsis')) {
       const fullText = e.target.getAttribute('data-full');
       const parent = e.target.parentElement;
       parent.textContent = fullText;
+      return;
+    }
+
+    // Handle false positive marking
+    const fpBtn = e.target.closest('button[data-mark-fp]');
+    if (fpBtn) {
+      const findingIndex = parseInt(fpBtn.getAttribute('data-mark-fp'));
+      const findingsData = JSON.parse(resultsList.dataset.findings || '[]');
+      const finding = findingsData[findingIndex];
+
+      if (!finding) return;
+
+      try {
+        // Send message to background to add to false positives
+        await chrome.runtime.sendMessage({
+          type: 'ADD_FALSE_POSITIVE',
+          finding: finding
+        });
+
+        // Remove the finding from current display
+        const findingItem = fpBtn.closest('.finding-item');
+        if (findingItem) {
+          findingItem.style.opacity = '0';
+          findingItem.style.transition = 'opacity 0.3s';
+          setTimeout(() => {
+            // Update the findings array
+            findingsData.splice(findingIndex, 1);
+            updateFindingsList(findingsData);
+
+            // Update the count
+            const isClean = findingsData.length === 0;
+            updateStatus(isClean, findingsData.length);
+          }, 300);
+        }
+      } catch (error) {
+        console.error('Failed to mark as false positive:', error);
+      }
     }
   });
 

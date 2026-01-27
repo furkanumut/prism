@@ -4,7 +4,8 @@
 const STORAGE_KEYS = {
     SETTINGS: 'prism_settings',
     RULES: 'prism_rules',
-    SCAN_HISTORY: 'prism_history'
+    SCAN_HISTORY: 'prism_history',
+    FALSE_POSITIVES: 'prism_false_positives'
 };
 
 const DEFAULT_SETTINGS = {
@@ -51,6 +52,14 @@ const elements = {
     logsModalClose: document.getElementById('logs-modal-close'),
     logsModalCloseBtn: document.getElementById('logs-modal-close-btn'),
     refreshLogsBtn: document.getElementById('refresh-logs-btn'),
+
+    // False Positives Modal
+    fpModal: document.getElementById('fp-modal'),
+    fpContainer: document.getElementById('fp-container'),
+    fpModalClose: document.getElementById('fp-modal-close'),
+    fpModalCloseBtn: document.getElementById('fp-modal-close-btn'),
+    refreshFpBtn: document.getElementById('refresh-fp-btn'),
+    viewFpBtn: document.getElementById('view-fp-btn'),
 
     // Toast
     toast: document.getElementById('toast'),
@@ -327,6 +336,86 @@ function renderLogs(history) {
 }
 
 /**
+ * Load and display false positives
+ */
+async function loadFalsePositives() {
+    return new Promise((resolve) => {
+        chrome.storage.local.get([STORAGE_KEYS.FALSE_POSITIVES], (result) => {
+            const falsePositives = result[STORAGE_KEYS.FALSE_POSITIVES] || [];
+            renderFalsePositives(falsePositives);
+            resolve();
+        });
+    });
+}
+
+/**
+ * Render false positives list
+ */
+function renderFalsePositives(falsePositives) {
+    if (falsePositives.length === 0) {
+        elements.fpContainer.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <p>No false positives marked</p>
+      </div>
+    `;
+        return;
+    }
+
+    elements.fpContainer.innerHTML = falsePositives.map(fp => {
+        const markedDate = new Date(fp.markedAt).toLocaleString();
+        const truncatedValue = fp.value.length > 100 ? fp.value.substring(0, 100) : fp.value;
+        const isTruncated = fp.value.length > 100;
+
+        return `
+      <div class="fp-item" style="padding: 14px; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px;">
+        <div class="fp-header" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span class="fp-rule" style="font-weight: 600; color: var(--accent-secondary);">${escapeHtml(fp.ruleName)}</span>
+          <span class="fp-type" style="font-size: 10px; padding: 2px 6px; background: var(--bg-tertiary); color: var(--text-muted); border-radius: 4px; text-transform: uppercase;">${escapeHtml(fp.sourceType)}</span>
+        </div>
+        <div class="fp-value" style="font-family: 'Consolas', monospace; font-size: 11px; color: var(--text-secondary); padding: 8px; background: var(--bg-secondary); border-radius: 4px; word-break: break-all; margin-bottom: 8px;">
+          ${escapeHtml(truncatedValue)}
+          ${isTruncated ? `<span class="expand-ellipsis" data-full="${escapeHtml(fp.value)}">......</span>` : ''}
+        </div>
+        <div class="fp-meta" style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 8px;">
+          <span class="fp-source" title="${escapeHtml(fp.source)}">Source: ${escapeHtml(truncateUrl(fp.source))}</span>
+          <span class="fp-date">Marked: ${markedDate}</span>
+        </div>
+        <div class="fp-actions" style="display: flex; justify-content: flex-end;">
+          <button class="btn btn-danger btn-small" data-restore-fp="${fp.id}">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 3v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Restore
+          </button>
+        </div>
+      </div>
+    `;
+    }).join('');
+}
+
+/**
+ * Restore (remove) a false positive
+ */
+async function restoreFalsePositive(fpId) {
+    return new Promise((resolve) => {
+        chrome.storage.local.get([STORAGE_KEYS.FALSE_POSITIVES], (result) => {
+            const falsePositives = result[STORAGE_KEYS.FALSE_POSITIVES] || [];
+            const filtered = falsePositives.filter(fp => fp.id !== fpId);
+
+            chrome.storage.local.set({ [STORAGE_KEYS.FALSE_POSITIVES]: filtered }, () => {
+                loadFalsePositives();
+                showToast('False positive restored');
+                resolve();
+            });
+        });
+    });
+}
+
+/**
  * Setup event listeners
  */
 function setupEventListeners() {
@@ -381,6 +470,38 @@ function setupEventListeners() {
     elements.logsModalCloseBtn.addEventListener('click', () => elements.logsModal.style.display = 'none');
     elements.logsModal.addEventListener('click', (e) => {
         if (e.target === elements.logsModal) elements.logsModal.style.display = 'none';
+    });
+
+    // False Positives Modal actions
+    elements.viewFpBtn.addEventListener('click', () => {
+        loadFalsePositives();
+        elements.fpModal.style.display = 'flex';
+    });
+    elements.refreshFpBtn.addEventListener('click', loadFalsePositives);
+    elements.fpModalClose.addEventListener('click', () => elements.fpModal.style.display = 'none');
+    elements.fpModalCloseBtn.addEventListener('click', () => elements.fpModal.style.display = 'none');
+    elements.fpModal.addEventListener('click', (e) => {
+        if (e.target === elements.fpModal) elements.fpModal.style.display = 'none';
+    });
+
+    // False Positives container event delegation
+    elements.fpContainer.addEventListener('click', async (e) => {
+        // Handle ellipsis expansion
+        if (e.target.classList.contains('expand-ellipsis')) {
+            const fullText = e.target.getAttribute('data-full');
+            const parent = e.target.parentElement;
+            parent.textContent = fullText;
+            return;
+        }
+
+        // Handle restore button
+        const restoreBtn = e.target.closest('button[data-restore-fp]');
+        if (restoreBtn) {
+            const fpId = restoreBtn.getAttribute('data-restore-fp');
+            if (confirm('Are you sure you want to restore this false positive? It will appear in future scans.')) {
+                await restoreFalsePositive(fpId);
+            }
+        }
     });
 
     // Rules search
