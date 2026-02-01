@@ -3,7 +3,7 @@
     "name": "PRISM",
     "version": "1.0.0",
     "description": "PRISM - Advanced browser-based secret scanner that reveals invisible security risks. Refracting the web to find hidden secrets.",
-    "author": "PRISM",
+    "author": "furkanumut",
     "icons": {
         "16": "icons/icon16.png",
         "48": "icons/icon48.png",
