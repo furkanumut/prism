@@ -38,7 +38,8 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "rules/default-rules.json"
+        "rules/default-rules.json",
+        "src/content/scanner-worker.js"
       ],
       "matches": [
         "<all_urls>"

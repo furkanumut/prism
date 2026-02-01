@@ -13,7 +13,8 @@ const DEFAULT_SETTINGS = {
     scanThirdPartyResources: true,
     autoScanOnLoad: false,
     showNotifications: true,
-    historyExpirationDays: 7
+    historyExpirationDays: 7,
+    maxFileSizeKB: 1000
 };
 
 // DOM Elements
@@ -24,6 +25,7 @@ const elements = {
     autoScanOnLoad: document.getElementById('autoScanOnLoad'),
     showNotifications: document.getElementById('showNotifications'),
     historyExpirationDays: document.getElementById('historyExpirationDays'),
+    maxFileSizeKB: document.getElementById('maxFileSizeKB'),
     excludedDomains: document.getElementById('excludedDomains'),
     clearHistoryBtn: document.getElementById('clear-history-btn'),
     viewLogsBtn: document.getElementById('view-logs-btn'),
@@ -90,6 +92,7 @@ async function loadSettings() {
             elements.autoScanOnLoad.checked = settings.autoScanOnLoad;
             elements.showNotifications.checked = settings.showNotifications;
             elements.historyExpirationDays.value = settings.historyExpirationDays;
+            elements.maxFileSizeKB.value = settings.maxFileSizeKB;
             elements.excludedDomains.value = settings.excludedDomains ? settings.excludedDomains.join('\n') : '';
 
             resolve();
@@ -113,6 +116,7 @@ async function saveSettings() {
         autoScanOnLoad: elements.autoScanOnLoad.checked,
         showNotifications: elements.showNotifications.checked,
         historyExpirationDays: parseInt(elements.historyExpirationDays.value) || 7,
+        maxFileSizeKB: parseInt(elements.maxFileSizeKB.value) || 500,
         excludedDomains: excludedDomains
     };
 
@@ -425,6 +429,7 @@ function setupEventListeners() {
     elements.autoScanOnLoad.addEventListener('change', saveSettings);
     elements.showNotifications.addEventListener('change', saveSettings);
     elements.historyExpirationDays.addEventListener('change', saveSettings);
+    elements.maxFileSizeKB.addEventListener('change', saveSettings);
     elements.excludedDomains.addEventListener('input', saveSettings); // Save on input for text area
 
     // Expand/collapse ellipsis click handler for Logs

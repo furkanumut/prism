@@ -96,6 +96,15 @@
 
                     <div class="setting-item">
                         <div class="setting-info">
+                            <label for="maxFileSizeKB">Max File Size (KB)</label>
+                            <p class="setting-description">Skip external files larger than this size to improve scan
+                                speed. Set to 0 for no limit.</p>
+                        </div>
+                        <input type="number" id="maxFileSizeKB" min="0" max="10000" value="1000" class="number-input">
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
                             <label>View Scan Logs</label>
                             <p class="setting-description">View all detected secrets from scan history</p>
                         </div>
