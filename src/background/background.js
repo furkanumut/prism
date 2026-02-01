@@ -12,7 +12,9 @@ import {
     clearHistory,
     cleanupExpiredHistory,
     filterFalsePositives,
-    addFalsePositive
+    addFalsePositive,
+    getNewFindings,
+    markFindingsAsSeen
 } from '../shared/storage.js';
 
 // Initialize extension on install
@@ -73,6 +75,12 @@ async function handleMessage(message, sender) {
             // If checking from content script, use senderTabId
             const targetTabId = message.tabId || senderTabId;
             const scanResults = await getScanResults(targetTabId);
+
+            // Filter out false positives before returning
+            if (scanResults && scanResults.findings) {
+                scanResults.findings = await filterFalsePositives(scanResults.findings);
+            }
+
             console.log('[PRISM] GET_RESULTS for tab', targetTabId, 'returned:', scanResults ? scanResults.findings?.length + ' findings' : 'null');
             return scanResults;
 
@@ -148,34 +156,44 @@ async function handleMessage(message, sender) {
             if (filteredFindings && filteredFindings.length > 0) {
                 await addToHistory(results);
 
-                // Show notification (browser + in-page) if enabled
-                const settings = await getSettings();
-                if (settings.showNotifications) {
-                    await showNotification(filteredFindings.length, message.url);
+                // Check for NEW findings (not seen before on this URL)
+                const newFindings = await getNewFindings(message.url, filteredFindings);
 
-                    // Show in-page notification
-                    try {
-                        const tab = sender.tab;
-                        if (tab && tab.id) {
-                            // Inject notification script if not already injected
-                            await chrome.scripting.executeScript({
-                                target: { tabId: tab.id },
-                                files: ['src/content/notification.js']
-                            }).catch(() => {
-                                // Script might already be injected, that's okay
-                            });
+                // Mark all current findings as seen for this URL
+                await markFindingsAsSeen(message.url, filteredFindings);
 
-                            // Send message to show notification
-                            await chrome.tabs.sendMessage(tab.id, {
-                                type: MESSAGE_TYPES.SHOW_IN_PAGE_NOTIFICATION,
-                                findingsCount: filteredFindings.length
-                            }).catch(() => {
-                                // Tab might be closed or restricted, ignore
-                            });
+                // Show notification ONLY if there are NEW findings
+                if (newFindings.length > 0) {
+                    const settings = await getSettings();
+                    if (settings.showNotifications) {
+                        await showNotification(newFindings.length, message.url);
+
+                        // Show in-page notification
+                        try {
+                            const tab = sender.tab;
+                            if (tab && tab.id) {
+                                // Inject notification script if not already injected
+                                await chrome.scripting.executeScript({
+                                    target: { tabId: tab.id },
+                                    files: ['src/content/notification.js']
+                                }).catch(() => {
+                                    // Script might already be injected, that's okay
+                                });
+
+                                // Send message to show notification
+                                await chrome.tabs.sendMessage(tab.id, {
+                                    type: MESSAGE_TYPES.SHOW_IN_PAGE_NOTIFICATION,
+                                    findingsCount: newFindings.length
+                                }).catch(() => {
+                                    // Tab might be closed or restricted, ignore
+                                });
+                            }
+                        } catch (error) {
+                            console.error('Failed to show in-page notification:', error);
                         }
-                    } catch (error) {
-                        console.error('Failed to show in-page notification:', error);
                     }
+                } else {
+                    console.log('[PRISM] No new findings for this URL, skipping notification');
                 }
             }
 

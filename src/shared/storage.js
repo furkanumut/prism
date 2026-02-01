@@ -423,3 +423,121 @@ export async function filterFalsePositives(findings) {
 function generateId() {
     return 'id_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
 }
+
+/**
+ * Generate hash for a finding (for seen tracking)
+ * @param {Object} finding - Finding object
+ * @returns {string} Hash string
+ */
+function generateSeenHash(finding) {
+    const text = `${finding.ruleName}:${finding.value || finding.context?.match || ''}`;
+    let hash = 5381;
+    for (let i = 0; i < text.length; i++) {
+        hash = ((hash << 5) + hash) + text.charCodeAt(i);
+        hash = hash & hash;
+    }
+    return 'seen_' + Math.abs(hash).toString(16);
+}
+
+/**
+ * Get seen findings from storage
+ * @returns {Promise<Object>} Object mapping URL to Set of seen hashes
+ */
+export async function getSeenFindings() {
+    return new Promise((resolve) => {
+        chrome.storage.local.get([STORAGE_KEYS.SEEN_FINDINGS], (result) => {
+            resolve(result[STORAGE_KEYS.SEEN_FINDINGS] || {});
+        });
+    });
+}
+
+/**
+ * Mark findings as seen (based on finding's source URL, not page URL)
+ * @param {Array} findings - Array of findings to mark as seen
+ * @returns {Promise<void>}
+ */
+export async function markFindingsAsSeen(url, findings) {
+    if (!findings || findings.length === 0) return;
+
+    const seenFindings = await getSeenFindings();
+
+    // Group findings by their source URL (external script URL)
+    for (const finding of findings) {
+        // Use the finding's source (external script URL) as the key
+        let sourceKey;
+        try {
+            if (finding.source && finding.source.startsWith('http')) {
+                const urlObj = new URL(finding.source);
+                sourceKey = urlObj.hostname + urlObj.pathname;
+            } else {
+                // For inline scripts, use page URL
+                const urlObj = new URL(url);
+                sourceKey = urlObj.hostname + urlObj.pathname;
+            }
+        } catch {
+            sourceKey = finding.source || url;
+        }
+
+        // Initialize array for this source if doesn't exist
+        if (!seenFindings[sourceKey]) {
+            seenFindings[sourceKey] = [];
+        }
+
+        const hash = generateSeenHash(finding);
+        if (!seenFindings[sourceKey].includes(hash)) {
+            seenFindings[sourceKey].push(hash);
+        }
+
+        // Limit to last 500 entries per source
+        if (seenFindings[sourceKey].length > 500) {
+            seenFindings[sourceKey] = seenFindings[sourceKey].slice(-500);
+        }
+    }
+
+    // Limit to last 200 sources
+    const sources = Object.keys(seenFindings);
+    if (sources.length > 200) {
+        const toRemove = sources.slice(0, sources.length - 200);
+        toRemove.forEach(s => delete seenFindings[s]);
+    }
+
+    return new Promise((resolve) => {
+        chrome.storage.local.set({ [STORAGE_KEYS.SEEN_FINDINGS]: seenFindings }, resolve);
+    });
+}
+
+/**
+ * Filter findings to get only NEW ones (not seen before in their source)
+ * @param {string} pageUrl - The page URL (used for inline scripts)
+ * @param {Array} findings - Array of findings
+ * @returns {Promise<Array>} Array of NEW findings only
+ */
+export async function getNewFindings(pageUrl, findings) {
+    if (!findings || findings.length === 0) return [];
+
+    const seenFindings = await getSeenFindings();
+
+    const newFindings = findings.filter(finding => {
+        // Determine the source key for this finding
+        let sourceKey;
+        try {
+            if (finding.source && finding.source.startsWith('http')) {
+                const urlObj = new URL(finding.source);
+                sourceKey = urlObj.hostname + urlObj.pathname;
+            } else {
+                // For inline scripts, use page URL
+                const urlObj = new URL(pageUrl);
+                sourceKey = urlObj.hostname + urlObj.pathname;
+            }
+        } catch {
+            sourceKey = finding.source || pageUrl;
+        }
+
+        const seenHashes = new Set(seenFindings[sourceKey] || []);
+        const hash = generateSeenHash(finding);
+        return !seenHashes.has(hash);
+    });
+
+    console.log('[PRISM] Found', newFindings.length, 'new findings out of', findings.length, 'total (source-based tracking)');
+    return newFindings;
+}

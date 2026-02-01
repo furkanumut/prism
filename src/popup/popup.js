@@ -137,17 +137,20 @@ document.addEventListener('DOMContentLoaded', () => {
     statusCard.classList.remove('clean', 'risky');
 
     if (isScanning) {
-      statusIcon.innerHTML = icons.ready;
+      statusIcon.textContent = '';
+      statusIcon.insertAdjacentHTML('beforeend', icons.ready);
       statusLabel.textContent = 'Scanning...';
       statusDetail.textContent = 'Analyzing page resources';
     } else if (isClean) {
       statusCard.classList.add('clean');
-      statusIcon.innerHTML = icons.clean;
+      statusIcon.textContent = '';
+      statusIcon.insertAdjacentHTML('beforeend', icons.clean);
       statusLabel.textContent = 'Clean';
       statusDetail.textContent = 'No secrets found on this page';
     } else {
       statusCard.classList.add('risky');
-      statusIcon.innerHTML = icons.risky;
+      statusIcon.textContent = '';
+      statusIcon.insertAdjacentHTML('beforeend', icons.risky);
       statusLabel.textContent = 'Secrets Found';
       statusDetail.textContent = `${count} potential secret${count > 1 ? 's' : ''} detected`;
     }
@@ -177,15 +180,31 @@ document.addEventListener('DOMContentLoaded', () => {
     findingsCount.classList.toggle('clean', findings.length === 0);
 
     if (findings.length === 0) {
-      resultsList.innerHTML = `
-        <div class="empty-state">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-            <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <p>No secrets detected</p>
-        </div>
-      `;
+      resultsList.textContent = '';
+      const emptyDiv = document.createElement('div');
+      emptyDiv.className = 'empty-state';
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      svg.setAttribute('fill', 'none');
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', '12');
+      circle.setAttribute('cy', '12');
+      circle.setAttribute('r', '10');
+      circle.setAttribute('stroke', 'currentColor');
+      circle.setAttribute('stroke-width', '2');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M8 12L11 15L16 9');
+      path.setAttribute('stroke', 'currentColor');
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('stroke-linecap', 'round');
+      path.setAttribute('stroke-linejoin', 'round');
+      svg.appendChild(circle);
+      svg.appendChild(path);
+      const p = document.createElement('p');
+      p.textContent = 'No secrets detected';
+      emptyDiv.appendChild(svg);
+      emptyDiv.appendChild(p);
+      resultsList.appendChild(emptyDiv);
       return;
     }
 
@@ -231,7 +250,12 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="finding-type">${escapeHtml(finding.sourceType)}</span>
           </div>
           ${contextHtml}
-          <div class="finding-source" title="${escapeHtml(finding.source)}">${escapeHtml(truncateUrl(finding.source))}</div>
+          <div class="finding-source clickable" 
+               title="Click to open and highlight"
+               data-source-url="${escapeHtml(finding.source)}"
+               data-match="${escapeHtml(finding.value || finding.context?.match || '')}">
+            🔗 ${escapeHtml(truncateUrl(finding.source))}
+          </div>
           <div class="finding-actions">
             <button class="fp-btn" data-mark-fp="${index}">
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -261,7 +285,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function showError(message) {
     statusCard.classList.remove('clean', 'risky');
     statusCard.classList.add('risky');
-    statusIcon.innerHTML = icons.risky;
+    statusIcon.textContent = '';
+    statusIcon.insertAdjacentHTML('beforeend', icons.risky);
     statusLabel.textContent = 'Error';
     statusDetail.textContent = message;
   }
@@ -299,6 +324,50 @@ document.addEventListener('DOMContentLoaded', () => {
       const fullText = e.target.getAttribute('data-full');
       const parent = e.target.parentElement;
       parent.textContent = fullText;
+      return;
+    }
+
+    // Handle source URL click - open in new tab with text highlight
+    const sourceEl = e.target.closest('.finding-source.clickable');
+    if (sourceEl) {
+      const sourceUrl = sourceEl.getAttribute('data-source-url');
+      const matchText = sourceEl.getAttribute('data-match');
+
+      if (sourceUrl && sourceUrl.startsWith('http')) {
+        // For external scripts, open with text fragment to highlight
+        // Take first 50 chars of match for the text fragment
+        const searchText = matchText ? matchText.substring(0, 50) : '';
+
+        // Open URL in new tab
+        chrome.tabs.create({ url: sourceUrl }, (tab) => {
+          // After tab loads, inject script to find and highlight the text
+          if (searchText) {
+            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+              if (tabId === tab.id && info.status === 'complete') {
+                chrome.tabs.onUpdated.removeListener(listener);
+
+                // Send message to trigger browser's find feature
+                chrome.scripting.executeScript({
+                  target: { tabId: tab.id },
+                  func: (textToFind) => {
+                    // Try to find and scroll to the text
+                    const text = textToFind.substring(0, 30);
+                    if (window.find) {
+                      window.find(text, false, false, true, false, true, false);
+                    }
+                  },
+                  args: [searchText]
+                }).catch(() => {
+                  // Script injection might fail on some pages, that's okay
+                });
+              }
+            });
+          }
+        });
+      } else {
+        // For inline scripts, just show an alert
+        alert('This is an inline script. The match was found in the page source.');
+      }
       return;
     }
 

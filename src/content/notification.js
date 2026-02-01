@@ -2,37 +2,56 @@
 // Shows a notification when secrets are found
 
 (function () {
-    'use strict';
+  'use strict';
 
-    // Prevent multiple injections
-    if (window.__prismNotificationLoaded) return;
-    window.__prismNotificationLoaded = true;
+  // Prevent multiple injections
+  if (window.__prismNotificationLoaded) return;
+  window.__prismNotificationLoaded = true;
 
-    /**
-     * Show in-page notification
-     */
-    function showNotification(findingsCount) {
-        // Remove existing notification if any
-        const existing = document.getElementById('prism-notification');
-        if (existing) {
-            existing.remove();
-        }
+  /**
+   * Show in-page notification
+   */
+  function showNotification(findingsCount) {
+    // Remove existing notification if any
+    const existing = document.getElementById('prism-notification');
+    if (existing) {
+      existing.remove();
+    }
 
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.id = 'prism-notification';
-        notification.innerHTML = `
-      <div class="prism-notif-icon">🔐</div>
-      <div class="prism-notif-content">
-        <div class="prism-notif-title">PRISM Alert</div>
-        <div class="prism-notif-message">Found ${findingsCount} potential secret${findingsCount > 1 ? 's' : ''}</div>
-      </div>
-      <div class="prism-notif-close">×</div>
-    `;
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.id = 'prism-notification';
 
-        // Add styles
-        const style = document.createElement('style');
-        style.textContent = `
+    // Build notification content safely using DOM API
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'prism-notif-icon';
+    iconDiv.textContent = '🔐';
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'prism-notif-content';
+
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'prism-notif-title';
+    titleDiv.textContent = 'PRISM Alert';
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'prism-notif-message';
+    messageDiv.textContent = `Found ${findingsCount} potential secret${findingsCount > 1 ? 's' : ''}`;
+
+    contentDiv.appendChild(titleDiv);
+    contentDiv.appendChild(messageDiv);
+
+    const closeDiv = document.createElement('div');
+    closeDiv.className = 'prism-notif-close';
+    closeDiv.textContent = '×';
+
+    notification.appendChild(iconDiv);
+    notification.appendChild(contentDiv);
+    notification.appendChild(closeDiv);
+
+    // Add styles
+    const style = document.createElement('style');
+    style.textContent = `
       #prism-notification {
         position: fixed;
         top: 20px;
@@ -121,63 +140,63 @@
       }
     `;
 
-        // Append to document
-        if (document.head) {
-            document.head.appendChild(style);
-        }
-        if (document.body) {
-            document.body.appendChild(notification);
-        } else {
-            // If body not ready, wait for it
-            document.addEventListener('DOMContentLoaded', () => {
-                document.body.appendChild(notification);
-            });
-        }
-
-        // Click to open popup (if possible)
-        notification.addEventListener('click', (e) => {
-            if (!e.target.classList.contains('prism-notif-close')) {
-                // Send message to open popup
-                chrome.runtime.sendMessage({ type: 'OPEN_POPUP' }).catch(() => {
-                    // Fallback: just close notification
-                    closeNotification(notification);
-                });
-            }
-        });
-
-        // Close button
-        const closeBtn = notification.querySelector('.prism-notif-close');
-        closeBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            closeNotification(notification);
-        });
-
-        // Auto-dismiss after 5 seconds
-        setTimeout(() => {
-            closeNotification(notification);
-        }, 5000);
+    // Append to document
+    if (document.head) {
+      document.head.appendChild(style);
+    }
+    if (document.body) {
+      document.body.appendChild(notification);
+    } else {
+      // If body not ready, wait for it
+      document.addEventListener('DOMContentLoaded', () => {
+        document.body.appendChild(notification);
+      });
     }
 
-    /**
-     * Close notification with animation
-     */
-    function closeNotification(notification) {
-        if (!notification || !notification.parentNode) return;
-
-        notification.classList.add('prism-closing');
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
-            }
-        }, 300);
-    }
-
-    // Listen for messages from background script
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        if (message.type === 'SHOW_IN_PAGE_NOTIFICATION') {
-            showNotification(message.findingsCount);
-            sendResponse({ success: true });
-        }
+    // Click to open popup (if possible)
+    notification.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('prism-notif-close')) {
+        // Send message to open popup
+        chrome.runtime.sendMessage({ type: 'OPEN_POPUP' }).catch(() => {
+          // Fallback: just close notification
+          closeNotification(notification);
+        });
+      }
     });
+
+    // Close button
+    const closeBtn = notification.querySelector('.prism-notif-close');
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeNotification(notification);
+    });
+
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+      closeNotification(notification);
+    }, 5000);
+  }
+
+  /**
+   * Close notification with animation
+   */
+  function closeNotification(notification) {
+    if (!notification || !notification.parentNode) return;
+
+    notification.classList.add('prism-closing');
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.remove();
+      }
+    }, 300);
+  }
+
+  // Listen for messages from background script
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'SHOW_IN_PAGE_NOTIFICATION') {
+      showNotification(message.findingsCount);
+      sendResponse({ success: true });
+    }
+  });
 
 })();

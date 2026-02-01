@@ -187,15 +187,30 @@ function renderRules() {
     }
 
     if (filteredRules.length === 0) {
-        elements.rulesList.innerHTML = `
-      <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
-          <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        <p>No rules found</p>
-      </div>
-    `;
+        elements.rulesList.textContent = '';
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'empty-state';
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('fill', 'none');
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', '11');
+        circle.setAttribute('cy', '11');
+        circle.setAttribute('r', '8');
+        circle.setAttribute('stroke', 'currentColor');
+        circle.setAttribute('stroke-width', '2');
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', 'M21 21L16.65 16.65');
+        path.setAttribute('stroke', 'currentColor');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('stroke-linecap', 'round');
+        svg.appendChild(circle);
+        svg.appendChild(path);
+        const p = document.createElement('p');
+        p.textContent = 'No rules found';
+        emptyDiv.appendChild(svg);
+        emptyDiv.appendChild(p);
+        elements.rulesList.appendChild(emptyDiv);
         return;
     }
 
@@ -248,15 +263,31 @@ async function loadLogs() {
  */
 function renderLogs(history) {
     if (history.length === 0) {
-        elements.logsContainer.innerHTML = `
-      <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <p>No scan history available</p>
-      </div>
-    `;
+        elements.logsContainer.textContent = '';
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'empty-state';
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('fill', 'none');
+        const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path1.setAttribute('d', 'M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z');
+        path1.setAttribute('stroke', 'currentColor');
+        path1.setAttribute('stroke-width', '2');
+        path1.setAttribute('stroke-linecap', 'round');
+        path1.setAttribute('stroke-linejoin', 'round');
+        const path2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path2.setAttribute('d', 'M14 2v6h6M16 13H8M16 17H8M10 9H8');
+        path2.setAttribute('stroke', 'currentColor');
+        path2.setAttribute('stroke-width', '2');
+        path2.setAttribute('stroke-linecap', 'round');
+        path2.setAttribute('stroke-linejoin', 'round');
+        svg.appendChild(path1);
+        svg.appendChild(path2);
+        const p = document.createElement('p');
+        p.textContent = 'No scan history available';
+        emptyDiv.appendChild(svg);
+        emptyDiv.appendChild(p);
+        elements.logsContainer.appendChild(emptyDiv);
         return;
     }
 
@@ -357,14 +388,23 @@ async function loadFalsePositives() {
  */
 function renderFalsePositives(falsePositives) {
     if (falsePositives.length === 0) {
-        elements.fpContainer.innerHTML = `
-      <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        <p>No false positives marked</p>
-      </div>
-    `;
+        elements.fpContainer.textContent = '';
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'empty-state';
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('fill', 'none');
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', 'M18 6L6 18M6 6l12 12');
+        path.setAttribute('stroke', 'currentColor');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('stroke-linecap', 'round');
+        svg.appendChild(path);
+        const p = document.createElement('p');
+        p.textContent = 'No false positives marked';
+        emptyDiv.appendChild(svg);
+        emptyDiv.appendChild(p);
+        elements.fpContainer.appendChild(emptyDiv);
         return;
     }
 

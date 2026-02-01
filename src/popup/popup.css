@@ -42,7 +42,7 @@ body {
   color: var(--text-primary);
   width: 420px;
   min-height: 200px;
-  max-height: 550px;
+  max-height: 650px;
   overflow: hidden;
 }
 
@@ -349,6 +349,19 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.finding-source.clickable {
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 4px 6px;
+  margin: 0 -6px;
+  border-radius: 4px;
+}
+
+.finding-source.clickable:hover {
+  background: var(--bg-tertiary);
+  color: var(--accent-secondary);
 }
 
 .finding-actions {
