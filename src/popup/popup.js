@@ -137,20 +137,17 @@ document.addEventListener('DOMContentLoaded', () => {
     statusCard.classList.remove('clean', 'risky');
 
     if (isScanning) {
-      statusIcon.textContent = '';
-      statusIcon.insertAdjacentHTML('beforeend', icons.ready);
+      setSvgIcon(statusIcon, icons.ready);
       statusLabel.textContent = 'Scanning...';
       statusDetail.textContent = 'Analyzing page resources';
     } else if (isClean) {
       statusCard.classList.add('clean');
-      statusIcon.textContent = '';
-      statusIcon.insertAdjacentHTML('beforeend', icons.clean);
+      setSvgIcon(statusIcon, icons.clean);
       statusLabel.textContent = 'Clean';
       statusDetail.textContent = 'No secrets found on this page';
     } else {
       statusCard.classList.add('risky');
-      statusIcon.textContent = '';
-      statusIcon.insertAdjacentHTML('beforeend', icons.risky);
+      setSvgIcon(statusIcon, icons.risky);
       statusLabel.textContent = 'Secrets Found';
       statusDetail.textContent = `${count} potential secret${count > 1 ? 's' : ''} detected`;
     }
@@ -208,65 +205,105 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Show findings with context
-    resultsList.innerHTML = findings.map((finding, index) => {
-      // Build context display
-      let contextHtml = '';
+    // Show findings with context using safe DOM manipulation
+    resultsList.textContent = '';
+
+    findings.forEach((finding, index) => {
+      const findingItem = document.createElement('div');
+      findingItem.className = 'finding-item';
+      findingItem.dataset.findingIndex = index;
+
+      // Header
+      const header = document.createElement('div');
+      header.className = 'finding-header';
+      const ruleSpan = document.createElement('span');
+      ruleSpan.className = 'finding-rule';
+      ruleSpan.textContent = finding.ruleName;
+      const typeSpan = document.createElement('span');
+      typeSpan.className = 'finding-type';
+      typeSpan.textContent = finding.sourceType;
+      header.appendChild(ruleSpan);
+      header.appendChild(typeSpan);
+      findingItem.appendChild(header);
+
+      // Context
+      const contextDiv = document.createElement('div');
+      contextDiv.className = 'finding-context';
+
       if (finding.context) {
+        const beforeSpan = document.createElement('span');
+        beforeSpan.className = 'context-before';
+        beforeSpan.textContent = finding.context.before;
+        contextDiv.appendChild(beforeSpan);
+
+        const matchSpan = document.createElement('span');
+        matchSpan.className = 'context-match';
         const fullMatch = finding.context.match;
         const truncatedMatch = fullMatch.length > 150 ? fullMatch.substring(0, 150) : fullMatch;
-        const isTruncated = fullMatch.length > 150;
+        matchSpan.appendChild(document.createTextNode(truncatedMatch));
 
-        contextHtml = `
-          <div class="finding-context">
-            <span class="context-before">${escapeHtml(finding.context.before)}</span>
-            <span class="context-match">
-                ${escapeHtml(truncatedMatch)}
-                ${isTruncated ? `<span class="expand-ellipsis" data-full="${escapeHtml(fullMatch)}">......</span>` : ''}
-            </span>
-            <span class="context-after">${escapeHtml(finding.context.after)}</span>
-          </div>
-        `;
+        if (fullMatch.length > 150) {
+          const ellipsis = document.createElement('span');
+          ellipsis.className = 'expand-ellipsis';
+          ellipsis.dataset.full = fullMatch;
+          ellipsis.textContent = '......';
+          matchSpan.appendChild(ellipsis);
+        }
+        contextDiv.appendChild(matchSpan);
+
+        const afterSpan = document.createElement('span');
+        afterSpan.className = 'context-after';
+        afterSpan.textContent = finding.context.after;
+        contextDiv.appendChild(afterSpan);
       } else {
-        // Fallback if no context (old data)
+        const matchSpan = document.createElement('span');
+        matchSpan.className = 'context-match';
         const fullMatch = finding.value;
         const truncatedMatch = fullMatch.length > 150 ? fullMatch.substring(0, 150) : fullMatch;
-        const isTruncated = fullMatch.length > 150;
+        matchSpan.appendChild(document.createTextNode(truncatedMatch));
 
-        contextHtml = `
-          <div class="finding-context">
-            <span class="context-match">
-                ${escapeHtml(truncatedMatch)}
-                ${isTruncated ? `<span class="expand-ellipsis" data-full="${escapeHtml(fullMatch)}">......</span>` : ''}
-            </span>
-          </div>
-        `;
+        if (fullMatch.length > 150) {
+          const ellipsis = document.createElement('span');
+          ellipsis.className = 'expand-ellipsis';
+          ellipsis.dataset.full = fullMatch;
+          ellipsis.textContent = '......';
+          matchSpan.appendChild(ellipsis);
+        }
+        contextDiv.appendChild(matchSpan);
       }
+      findingItem.appendChild(contextDiv);
 
-      return `
-        <div class="finding-item" data-finding-index="${index}">
-          <div class="finding-header">
-            <span class="finding-rule">${escapeHtml(finding.ruleName)}</span>
-            <span class="finding-type">${escapeHtml(finding.sourceType)}</span>
-          </div>
-          ${contextHtml}
-          <div class="finding-source clickable" 
-               title="Click to open and highlight"
-               data-source-url="${escapeHtml(finding.source)}"
-               data-match="${escapeHtml(finding.value || finding.context?.match || '')}">
-            🔗 ${escapeHtml(truncateUrl(finding.source))}
-          </div>
-          <div class="finding-actions">
-            <button class="fp-btn" data-mark-fp="${index}">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              </svg>
-              False Positive
-            </button>
-          </div>
-        </div>
-      `;
-    }).join('');
+      // Source
+      const sourceDiv = document.createElement('div');
+      sourceDiv.className = 'finding-source clickable';
+      sourceDiv.title = 'Click to open and highlight';
+      sourceDiv.dataset.sourceUrl = finding.source;
+      sourceDiv.dataset.match = finding.value || finding.context?.match || '';
+      sourceDiv.textContent = '🔗 ' + truncateUrl(finding.source);
+      findingItem.appendChild(sourceDiv);
+
+      // Actions
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'finding-actions';
+      const fpBtn = document.createElement('button');
+      fpBtn.className = 'fp-btn';
+      fpBtn.dataset.markFp = index;
+      const fpSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      fpSvg.setAttribute('viewBox', '0 0 24 24');
+      fpSvg.setAttribute('fill', 'none');
+      const fpPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      fpPath.setAttribute('d', 'M18 6L6 18M6 6l12 12');
+      fpPath.setAttribute('stroke', 'currentColor');
+      fpPath.setAttribute('stroke-width', '2');
+      fpPath.setAttribute('stroke-linecap', 'round');
+      fpSvg.appendChild(fpPath);
+      fpBtn.appendChild(fpSvg);
+      fpBtn.appendChild(document.createTextNode(' False Positive'));
+      actionsDiv.appendChild(fpBtn);
+      findingItem.appendChild(actionsDiv);
+
+      resultsList.appendChild(findingItem);
+    });
 
     // Store findings data for later retrieval
     resultsList.dataset.findings = JSON.stringify(findings);
@@ -285,10 +322,22 @@ document.addEventListener('DOMContentLoaded', () => {
   function showError(message) {
     statusCard.classList.remove('clean', 'risky');
     statusCard.classList.add('risky');
-    statusIcon.textContent = '';
-    statusIcon.insertAdjacentHTML('beforeend', icons.risky);
+    setSvgIcon(statusIcon, icons.risky);
     statusLabel.textContent = 'Error';
     statusDetail.textContent = message;
+  }
+
+  /**
+   * Set SVG icon safely using DOMParser (for trusted static icon strings only)
+   */
+  function setSvgIcon(container, svgString) {
+    container.textContent = '';
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgString, 'image/svg+xml');
+    const svg = doc.documentElement;
+    if (svg && svg.tagName.toLowerCase() === 'svg') {
+      container.appendChild(document.importNode(svg, true));
+    }
   }
 
   /**

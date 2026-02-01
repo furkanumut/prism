@@ -214,35 +214,90 @@ function renderRules() {
         return;
     }
 
-    elements.rulesList.innerHTML = filteredRules.map(rule => `
-    <div class="rule-item ${rule.enabled ? '' : 'disabled'}" data-id="${rule.id}">
-      <div class="rule-toggle">
-        <label class="toggle">
-          <input type="checkbox" ${rule.enabled ? 'checked' : ''} data-toggle-id="${rule.id}">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      <div class="rule-info">
-        <div class="rule-name">${escapeHtml(rule.name)}</div>
-        <div class="rule-patterns">${escapeHtml(rule.patterns.slice(0, 2).join(' | '))}${rule.patterns.length > 2 ? ' ...' : ''}</div>
-      </div>
-      <div class="rule-actions">
-        <button class="btn btn-secondary btn-small" data-edit-id="${rule.id}">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Edit
-        </button>
-        <button class="btn btn-danger btn-small" data-delete-id="${rule.id}">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Delete
-        </button>
-      </div>
-    </div>
-  `).join('');
+    elements.rulesList.textContent = '';
+    filteredRules.forEach(rule => {
+        const ruleItem = document.createElement('div');
+        ruleItem.className = 'rule-item' + (rule.enabled ? '' : ' disabled');
+        ruleItem.dataset.id = rule.id;
+
+        // Toggle
+        const toggleDiv = document.createElement('div');
+        toggleDiv.className = 'rule-toggle';
+        const toggleLabel = document.createElement('label');
+        toggleLabel.className = 'toggle';
+        const toggleInput = document.createElement('input');
+        toggleInput.type = 'checkbox';
+        toggleInput.checked = rule.enabled;
+        toggleInput.dataset.toggleId = rule.id;
+        const toggleSlider = document.createElement('span');
+        toggleSlider.className = 'toggle-slider';
+        toggleLabel.appendChild(toggleInput);
+        toggleLabel.appendChild(toggleSlider);
+        toggleDiv.appendChild(toggleLabel);
+        ruleItem.appendChild(toggleDiv);
+
+        // Info
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'rule-info';
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'rule-name';
+        nameDiv.textContent = rule.name;
+        const patternsDiv = document.createElement('div');
+        patternsDiv.className = 'rule-patterns';
+        patternsDiv.textContent = rule.patterns.slice(0, 2).join(' | ') + (rule.patterns.length > 2 ? ' ...' : '');
+        infoDiv.appendChild(nameDiv);
+        infoDiv.appendChild(patternsDiv);
+        ruleItem.appendChild(infoDiv);
+
+        // Actions
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'rule-actions';
+
+        // Edit button
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn btn-secondary btn-small';
+        editBtn.dataset.editId = rule.id;
+        const editSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        editSvg.setAttribute('viewBox', '0 0 24 24');
+        editSvg.setAttribute('fill', 'none');
+        const editPath1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        editPath1.setAttribute('d', 'M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7');
+        editPath1.setAttribute('stroke', 'currentColor');
+        editPath1.setAttribute('stroke-width', '2');
+        editPath1.setAttribute('stroke-linecap', 'round');
+        const editPath2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        editPath2.setAttribute('d', 'M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z');
+        editPath2.setAttribute('stroke', 'currentColor');
+        editPath2.setAttribute('stroke-width', '2');
+        editPath2.setAttribute('stroke-linecap', 'round');
+        editPath2.setAttribute('stroke-linejoin', 'round');
+        editSvg.appendChild(editPath1);
+        editSvg.appendChild(editPath2);
+        editBtn.appendChild(editSvg);
+        editBtn.appendChild(document.createTextNode(' Edit'));
+        actionsDiv.appendChild(editBtn);
+
+        // Delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn btn-danger btn-small';
+        deleteBtn.dataset.deleteId = rule.id;
+        const deleteSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        deleteSvg.setAttribute('viewBox', '0 0 24 24');
+        deleteSvg.setAttribute('fill', 'none');
+        const deletePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        deletePath.setAttribute('d', 'M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z');
+        deletePath.setAttribute('stroke', 'currentColor');
+        deletePath.setAttribute('stroke-width', '2');
+        deletePath.setAttribute('stroke-linecap', 'round');
+        deletePath.setAttribute('stroke-linejoin', 'round');
+        deleteSvg.appendChild(deletePath);
+        deleteBtn.appendChild(deleteSvg);
+        deleteBtn.appendChild(document.createTextNode(' Delete'));
+        actionsDiv.appendChild(deleteBtn);
+
+        ruleItem.appendChild(actionsDiv);
+        elements.rulesList.appendChild(ruleItem);
+    });
 }
 
 /**
@@ -306,68 +361,121 @@ function renderLogs(history) {
         groupedLogs[date].push(entry);
     });
 
-    elements.logsContainer.innerHTML = Object.entries(groupedLogs).map(([date, entries]) => `
-    <div class="log-date-group">
-      <div class="log-date-header">${date}</div>
-      ${entries.map(entry => `
-        <div class="log-entry">
-          <div class="log-header">
-            <div class="log-url" title="${escapeHtml(entry.url)}">${escapeHtml(entry.url)}</div>
-            <div class="log-meta">
-              <span class="log-time">${new Date(entry.timestamp).toLocaleTimeString()}</span>
-              <span class="log-findings-count">${entry.findings.length} findings</span>
-            </div>
-          </div>
-          <div class="log-findings">
-            ${entry.findings.map(finding => {
-        // Build context display
-        let contextHtml = '';
-        if (finding.context) {
-            const fullMatch = finding.context.match;
-            const truncatedMatch = fullMatch.length > 150 ? fullMatch.substring(0, 150) : fullMatch;
-            const isTruncated = fullMatch.length > 150;
+    elements.logsContainer.textContent = '';
+    Object.entries(groupedLogs).forEach(([date, entries]) => {
+        const dateGroup = document.createElement('div');
+        dateGroup.className = 'log-date-group';
 
-            contextHtml = `
-                  <div class="log-context">
-                    <span class="context-around">${escapeHtml(finding.context.before)}</span>
-                    <span class="context-match">
-                      ${escapeHtml(truncatedMatch)}
-                      ${isTruncated ? `<span class="expand-ellipsis" data-full="${escapeHtml(fullMatch)}">......</span>` : ''}
-                    </span>
-                    <span class="context-around">${escapeHtml(finding.context.after)}</span>
-                  </div>
-                `;
-        } else {
-            const fullMatch = finding.value;
-            const truncatedMatch = fullMatch.length > 150 ? fullMatch.substring(0, 150) : fullMatch;
-            const isTruncated = fullMatch.length > 150;
+        const dateHeader = document.createElement('div');
+        dateHeader.className = 'log-date-header';
+        dateHeader.textContent = date;
+        dateGroup.appendChild(dateHeader);
 
-            contextHtml = `
-                    <div class="log-context">
-                        <span class="context-match">
-                            ${escapeHtml(truncatedMatch)}
-                            ${isTruncated ? `<span class="expand-ellipsis" data-full="${escapeHtml(fullMatch)}">......</span>` : ''}
-                        </span>
-                    </div>
-                `;
-        }
+        entries.forEach(entry => {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
 
-        return `
-                <div class="log-finding">
-                  <div class="log-finding-header">
-                    <span class="log-finding-rule">${escapeHtml(finding.ruleName)}</span>
-                    <span class="log-finding-type">${escapeHtml(finding.sourceType)}</span>
-                  </div>
-                  ${contextHtml}
-                  <div class="log-source" title="${escapeHtml(finding.source)}">Source: ${escapeHtml(truncateUrl(finding.source))}</div>
-                </div>
-              `;
-    }).join('')}
-          </div>
-        </div>
-      `).join('')}
-    </div>
-  `).join('');
+            // Header
+            const logHeader = document.createElement('div');
+            logHeader.className = 'log-header';
+            const logUrl = document.createElement('div');
+            logUrl.className = 'log-url';
+            logUrl.title = entry.url;
+            logUrl.textContent = entry.url;
+            const logMeta = document.createElement('div');
+            logMeta.className = 'log-meta';
+            const logTime = document.createElement('span');
+            logTime.className = 'log-time';
+            logTime.textContent = new Date(entry.timestamp).toLocaleTimeString();
+            const logCount = document.createElement('span');
+            logCount.className = 'log-findings-count';
+            logCount.textContent = entry.findings.length + ' findings';
+            logMeta.appendChild(logTime);
+            logMeta.appendChild(logCount);
+            logHeader.appendChild(logUrl);
+            logHeader.appendChild(logMeta);
+            logEntry.appendChild(logHeader);
+
+            // Findings
+            const logFindings = document.createElement('div');
+            logFindings.className = 'log-findings';
+
+            entry.findings.forEach(finding => {
+                const logFinding = document.createElement('div');
+                logFinding.className = 'log-finding';
+
+                const findingHeader = document.createElement('div');
+                findingHeader.className = 'log-finding-header';
+                const ruleSpan = document.createElement('span');
+                ruleSpan.className = 'log-finding-rule';
+                ruleSpan.textContent = finding.ruleName;
+                const typeSpan = document.createElement('span');
+                typeSpan.className = 'log-finding-type';
+                typeSpan.textContent = finding.sourceType;
+                findingHeader.appendChild(ruleSpan);
+                findingHeader.appendChild(typeSpan);
+                logFinding.appendChild(findingHeader);
+
+                // Context
+                const contextDiv = document.createElement('div');
+                contextDiv.className = 'log-context';
+
+                if (finding.context) {
+                    const beforeSpan = document.createElement('span');
+                    beforeSpan.className = 'context-around';
+                    beforeSpan.textContent = finding.context.before;
+                    contextDiv.appendChild(beforeSpan);
+
+                    const matchSpan = document.createElement('span');
+                    matchSpan.className = 'context-match';
+                    const fullMatch = finding.context.match;
+                    const truncatedMatch = fullMatch.length > 150 ? fullMatch.substring(0, 150) : fullMatch;
+                    matchSpan.appendChild(document.createTextNode(truncatedMatch));
+                    if (fullMatch.length > 150) {
+                        const ellipsis = document.createElement('span');
+                        ellipsis.className = 'expand-ellipsis';
+                        ellipsis.dataset.full = fullMatch;
+                        ellipsis.textContent = '......';
+                        matchSpan.appendChild(ellipsis);
+                    }
+                    contextDiv.appendChild(matchSpan);
+
+                    const afterSpan = document.createElement('span');
+                    afterSpan.className = 'context-around';
+                    afterSpan.textContent = finding.context.after;
+                    contextDiv.appendChild(afterSpan);
+                } else {
+                    const matchSpan = document.createElement('span');
+                    matchSpan.className = 'context-match';
+                    const fullMatch = finding.value;
+                    const truncatedMatch = fullMatch.length > 150 ? fullMatch.substring(0, 150) : fullMatch;
+                    matchSpan.appendChild(document.createTextNode(truncatedMatch));
+                    if (fullMatch.length > 150) {
+                        const ellipsis = document.createElement('span');
+                        ellipsis.className = 'expand-ellipsis';
+                        ellipsis.dataset.full = fullMatch;
+                        ellipsis.textContent = '......';
+                        matchSpan.appendChild(ellipsis);
+                    }
+                    contextDiv.appendChild(matchSpan);
+                }
+                logFinding.appendChild(contextDiv);
+
+                const sourceDiv = document.createElement('div');
+                sourceDiv.className = 'log-source';
+                sourceDiv.title = finding.source;
+                sourceDiv.textContent = 'Source: ' + truncateUrl(finding.source);
+                logFinding.appendChild(sourceDiv);
+
+                logFindings.appendChild(logFinding);
+            });
+
+            logEntry.appendChild(logFindings);
+            dateGroup.appendChild(logEntry);
+        });
+
+        elements.logsContainer.appendChild(dateGroup);
+    });
 }
 
 /**
@@ -408,37 +516,92 @@ function renderFalsePositives(falsePositives) {
         return;
     }
 
-    elements.fpContainer.innerHTML = falsePositives.map(fp => {
+    elements.fpContainer.textContent = '';
+    falsePositives.forEach(fp => {
         const markedDate = new Date(fp.markedAt).toLocaleString();
         const truncatedValue = fp.value.length > 100 ? fp.value.substring(0, 100) : fp.value;
         const isTruncated = fp.value.length > 100;
 
-        return `
-      <div class="fp-item" style="padding: 14px; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px;">
-        <div class="fp-header" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-          <span class="fp-rule" style="font-weight: 600; color: var(--accent-secondary);">${escapeHtml(fp.ruleName)}</span>
-          <span class="fp-type" style="font-size: 10px; padding: 2px 6px; background: var(--bg-tertiary); color: var(--text-muted); border-radius: 4px; text-transform: uppercase;">${escapeHtml(fp.sourceType)}</span>
-        </div>
-        <div class="fp-value" style="font-family: 'Consolas', monospace; font-size: 11px; color: var(--text-secondary); padding: 8px; background: var(--bg-secondary); border-radius: 4px; word-break: break-all; margin-bottom: 8px;">
-          ${escapeHtml(truncatedValue)}
-          ${isTruncated ? `<span class="expand-ellipsis" data-full="${escapeHtml(fp.value)}">......</span>` : ''}
-        </div>
-        <div class="fp-meta" style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 8px;">
-          <span class="fp-source" title="${escapeHtml(fp.source)}">Source: ${escapeHtml(truncateUrl(fp.source))}</span>
-          <span class="fp-date">Marked: ${markedDate}</span>
-        </div>
-        <div class="fp-actions" style="display: flex; justify-content: flex-end;">
-          <button class="btn btn-danger btn-small" data-restore-fp="${fp.id}">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M3 3v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Restore
-          </button>
-        </div>
-      </div>
-    `;
-    }).join('');
+        const fpItem = document.createElement('div');
+        fpItem.className = 'fp-item';
+        fpItem.style.cssText = 'padding: 14px; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px;';
+
+        // Header
+        const fpHeader = document.createElement('div');
+        fpHeader.className = 'fp-header';
+        fpHeader.style.cssText = 'display: flex; justify-content: space-between; margin-bottom: 8px;';
+        const ruleSpan = document.createElement('span');
+        ruleSpan.className = 'fp-rule';
+        ruleSpan.style.cssText = 'font-weight: 600; color: var(--accent-secondary);';
+        ruleSpan.textContent = fp.ruleName;
+        const typeSpan = document.createElement('span');
+        typeSpan.className = 'fp-type';
+        typeSpan.style.cssText = 'font-size: 10px; padding: 2px 6px; background: var(--bg-tertiary); color: var(--text-muted); border-radius: 4px; text-transform: uppercase;';
+        typeSpan.textContent = fp.sourceType;
+        fpHeader.appendChild(ruleSpan);
+        fpHeader.appendChild(typeSpan);
+        fpItem.appendChild(fpHeader);
+
+        // Value
+        const fpValue = document.createElement('div');
+        fpValue.className = 'fp-value';
+        fpValue.style.cssText = 'font-family: "Consolas", monospace; font-size: 11px; color: var(--text-secondary); padding: 8px; background: var(--bg-secondary); border-radius: 4px; word-break: break-all; margin-bottom: 8px;';
+        fpValue.appendChild(document.createTextNode(truncatedValue));
+        if (isTruncated) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'expand-ellipsis';
+            ellipsis.dataset.full = fp.value;
+            ellipsis.textContent = '......';
+            fpValue.appendChild(ellipsis);
+        }
+        fpItem.appendChild(fpValue);
+
+        // Meta
+        const fpMeta = document.createElement('div');
+        fpMeta.className = 'fp-meta';
+        fpMeta.style.cssText = 'display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 8px;';
+        const sourceSpan = document.createElement('span');
+        sourceSpan.className = 'fp-source';
+        sourceSpan.title = fp.source;
+        sourceSpan.textContent = 'Source: ' + truncateUrl(fp.source);
+        const dateSpan = document.createElement('span');
+        dateSpan.className = 'fp-date';
+        dateSpan.textContent = 'Marked: ' + markedDate;
+        fpMeta.appendChild(sourceSpan);
+        fpMeta.appendChild(dateSpan);
+        fpItem.appendChild(fpMeta);
+
+        // Actions
+        const fpActions = document.createElement('div');
+        fpActions.className = 'fp-actions';
+        fpActions.style.cssText = 'display: flex; justify-content: flex-end;';
+        const restoreBtn = document.createElement('button');
+        restoreBtn.className = 'btn btn-danger btn-small';
+        restoreBtn.dataset.restoreFp = fp.id;
+        const restoreSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        restoreSvg.setAttribute('viewBox', '0 0 24 24');
+        restoreSvg.setAttribute('fill', 'none');
+        const restorePath1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        restorePath1.setAttribute('d', 'M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8');
+        restorePath1.setAttribute('stroke', 'currentColor');
+        restorePath1.setAttribute('stroke-width', '2');
+        restorePath1.setAttribute('stroke-linecap', 'round');
+        restorePath1.setAttribute('stroke-linejoin', 'round');
+        const restorePath2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        restorePath2.setAttribute('d', 'M3 3v5h5');
+        restorePath2.setAttribute('stroke', 'currentColor');
+        restorePath2.setAttribute('stroke-width', '2');
+        restorePath2.setAttribute('stroke-linecap', 'round');
+        restorePath2.setAttribute('stroke-linejoin', 'round');
+        restoreSvg.appendChild(restorePath1);
+        restoreSvg.appendChild(restorePath2);
+        restoreBtn.appendChild(restoreSvg);
+        restoreBtn.appendChild(document.createTextNode(' Restore'));
+        fpActions.appendChild(restoreBtn);
+        fpItem.appendChild(fpActions);
+
+        elements.fpContainer.appendChild(fpItem);
+    });
 }
 
 /**
